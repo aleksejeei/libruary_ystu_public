@@ -1,0 +1,42 @@
+services:
+  bot:
+    build: .
+    environment:
+      - ENCRYPTION_KEY=ключ_шифрования
+      - TOKEN=токен_бота
+      - PASS_DB=Пароль_БД
+      - USER_DB=пользователь_БД
+      - URL_DB=db
+      - NAME_DB=ystulib
+    depends_on:
+      - db
+
+    restart: unless-stopped
+  db:
+    build: postgres/
+    environment:
+      - POSTGRES_USER=пользователь_БД
+      - POSTGRES_PASSWORD=пароль_БД
+      - POSTGRES_DB=ystulib
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ystu -d ystulib" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  phpPostgre:
+    image: adminer:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
